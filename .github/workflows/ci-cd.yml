@@ -85,10 +85,10 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_PORT || '22' }}
+          port: ${{ secrets.EC2_PORT }}
           script: |
             set -e
-            IMAGE_NAME="ghcr.io/${{ needs.docker-build-push.outputs.image_name }}:latest"
+            IMAGE_NAME="ghcr.io/${{ github.repository }}:latest"
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
