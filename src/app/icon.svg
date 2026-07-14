@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="32" height="32" rx="7" fill="#0f0f1a"/>
+  <!-- Sparkles icon scaled from 24x24 viewBox → centered in 32x32 box (offset ~4px each side) -->
+  <g transform="translate(4, 4) scale(1)">
+    <!-- Main star path -->
+    <path
+      d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
+      stroke="url(#g1)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"
+    />
+    <!-- Small sparkle top-right: vertical line -->
+    <path d="M20 3v4" stroke="url(#g1)" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Small sparkle top-right: horizontal line -->
+    <path d="M22 5h-4" stroke="url(#g1)" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Tiny sparkle bottom-left: vertical line -->
+    <path d="M4 17v2" stroke="url(#g1)" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Tiny sparkle bottom-left: horizontal line -->
+    <path d="M5 18H3" stroke="url(#g1)" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+</svg>
