@@ -99,9 +99,9 @@ jobs:
             docker run -d \
               --name myproject-app \
               --restart always \
-              -p 8003:8003 \
+              -p 8005:8005 \
               -e NODE_ENV=production \
-              -e PORT=8003 \
+              -e PORT=8005 \
               -e GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
               $IMAGE_NAME
 

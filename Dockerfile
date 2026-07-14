@@ -17,13 +17,14 @@ ARG GROQ_API_KEY
 
 # Make them available as environment variables at runtime
 ENV GROQ_API_KEY=$GROQ_API_KEY
+ENV PORT=8005
 
 # Build the Next.js application
 RUN npm run build
 
-# Expose port 8005
+# Expose the port (overridable via -e PORT=xxxx at runtime)
 EXPOSE 8005
 
-# Start the application
-CMD ["npm", "start"]
+# Start the application — shell form so $PORT is evaluated at runtime
+CMD ["sh", "-c", "npx next start -p ${PORT}"]
 
