@@ -56,7 +56,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ lower(github.repository) }}
           tags: |
             type=ref,event=branch
             type=sha,format=short
@@ -87,7 +87,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            IMAGE_NAME="ghcr.io/${{ github.repository }}:latest"
+            IMAGE_NAME="ghcr.io/${{ lower(github.repository) }}:latest"
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
