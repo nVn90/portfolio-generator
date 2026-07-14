@@ -13,7 +13,6 @@ export async function extractTextFromFile(
 
   // ── PDF ──────────────────────────────────────────────
   if (mimeType === "application/pdf" || ext === "pdf") {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const pdfParse = require("pdf-parse");
     const data = await pdfParse(buffer);
     if (!data.text?.trim()) {
@@ -30,7 +29,6 @@ export async function extractTextFromFile(
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
     ext === "docx"
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mammoth = require("mammoth");
     const result = await mammoth.extractRawText({ buffer });
     if (!result.value?.trim()) {
