@@ -96,6 +96,13 @@ const RESUME_TOOL: Groq.Chat.ChatCompletionTool = {
   },
 };
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000; // base delay, doubles each retry
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function parseResumeWithAI(resumeText: string): Promise<ResumeData> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
@@ -106,51 +113,77 @@ export async function parseResumeWithAI(resumeText: string): Promise<ResumeData>
 
   const client = new Groq({ apiKey });
 
-  const response = await client.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    max_tokens: 4096,
-    tools: [RESUME_TOOL],
-    tool_choice: { type: "function", function: { name: "extract_resume" } },
-    messages: [
-      {
-        role: "user",
-        content: `Extract all resume information from the following CV text. Be thorough and include every piece of information. If something is not present, use an empty string or empty array.\n\n<resume_text>\n${resumeText}\n</resume_text>`,
-      },
-    ],
-  });
+  let lastError: Error = new Error("Unknown error during CV parsing.");
 
-  const message = response.choices[0]?.message;
-  const toolCall = message?.tool_calls?.[0];
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      console.log(`[resume-parser] Attempt ${attempt}/${MAX_RETRIES} — calling Groq API...`);
 
-  if (!toolCall || toolCall.function.name !== "extract_resume") {
-    throw new Error("AI parsing returned no structured data. Please try again.");
-  }
+      const response = await client.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        max_tokens: 4096,
+        tools: [RESUME_TOOL],
+        tool_choice: { type: "function", function: { name: "extract_resume" } },
+        messages: [
+          {
+            role: "user",
+            content: `Extract all resume information from the following CV text. Be thorough and include every piece of information. If something is not present, use an empty string or empty array.\n\n<resume_text>\n${resumeText}\n</resume_text>`,
+          },
+        ],
+      });
 
-  let data: ResumeData;
-  try {
-    let args = toolCall.function.arguments;
-    // Strip markdown codeblocks if Llama wrapped it
-    if (args.startsWith('\`\`\`')) {
-      args = args.replace(/^\`\`\`json\n?/, '').replace(/\n?\`\`\`$/, '');
+      const message = response.choices[0]?.message;
+      const toolCall = message?.tool_calls?.[0];
+
+      if (!toolCall || toolCall.function.name !== "extract_resume") {
+        throw new Error("AI returned no structured data for the CV.");
+      }
+
+      let args = toolCall.function.arguments;
+      // Strip markdown codeblocks if Llama wrapped it
+      if (args.startsWith('```')) {
+        args = args.replace(/^```json\n?/, '').replace(/\n?```$/, '');
+      }
+
+      let data: ResumeData;
+      try {
+        data = JSON.parse(args.trim()) as ResumeData;
+      } catch (parseErr) {
+        console.error(`[resume-parser] Attempt ${attempt} — JSON parse failed:`, args);
+        throw new Error("AI response could not be parsed as valid JSON.");
+      }
+
+      // Success — return normalised data
+      return {
+        name: data.name || "Unknown",
+        title: data.title || "Professional",
+        summary: data.summary || "",
+        contact: data.contact || {},
+        experience: data.experience || [],
+        education: data.education || [],
+        projects: data.projects || [],
+        skills: data.skills || [],
+        certifications: data.certifications || [],
+        languages: data.languages || [],
+        awards: data.awards || [],
+      };
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      console.error(`[resume-parser] Attempt ${attempt} failed:`, lastError.message);
+
+      if (attempt < MAX_RETRIES) {
+        const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1); // 1s, 2s, 4s
+        console.log(`[resume-parser] Retrying in ${delay}ms...`);
+        await sleep(delay);
+      }
     }
-    data = JSON.parse(args.trim()) as ResumeData;
-  } catch (e) {
-    console.error("Failed to parse", toolCall.function.arguments);
-    throw new Error("Failed to parse AI response. Please try again.");
   }
 
-  // Ensure required arrays exist
-  return {
-    name: data.name || "Unknown",
-    title: data.title || "Professional",
-    summary: data.summary || "",
-    contact: data.contact || {},
-    experience: data.experience || [],
-    education: data.education || [],
-    projects: data.projects || [],
-    skills: data.skills || [],
-    certifications: data.certifications || [],
-    languages: data.languages || [],
-    awards: data.awards || [],
-  };
+  // All retries exhausted
+  console.error(`[resume-parser] All ${MAX_RETRIES} attempts failed. Last error:`, lastError.message);
+  throw new Error(
+    `We were unable to parse your CV after ${MAX_RETRIES} attempts. ` +
+    `Please check your file and try again, or use a different format (PDF, DOCX, or TXT). ` +
+    `If the issue persists, our AI service may be temporarily unavailable.`
+  );
 }
