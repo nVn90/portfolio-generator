@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { notFound } from "next/navigation";
 import PortfolioRenderer from "@/components/portfolio/PortfolioRenderer";
 import PortfolioToolbar from "@/components/portfolio/PortfolioToolbar";
 import type { PortfolioData, ThemeId, LayoutId } from "@/types";
@@ -30,8 +29,14 @@ export default function PortfolioPage({ params }: PageProps) {
         if (!res.ok) throw new Error("Failed to load portfolio");
         const json = await res.json();
         setData(json);
-        setPreviewTheme(json.themeId);
-        setPreviewLayout(json.layoutId);
+
+        // Prefer URL params (from a shared link) over the saved defaults
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTheme = urlParams.get("theme") as ThemeId | null;
+        const urlLayout = urlParams.get("layout") as LayoutId | null;
+
+        setPreviewTheme(urlTheme ?? json.themeId);
+        setPreviewLayout(urlLayout ?? json.layoutId);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load");
       } finally {
@@ -40,6 +45,16 @@ export default function PortfolioPage({ params }: PageProps) {
     }
     load();
   }, [params]);
+
+  // Keep the URL in sync with current customisations so Share always copies
+  // a link that restores the exact theme + layout the user is looking at.
+  useEffect(() => {
+    if (!previewTheme || !previewLayout) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("theme", previewTheme);
+    url.searchParams.set("layout", previewLayout);
+    window.history.replaceState(null, "", url.toString());
+  }, [previewTheme, previewLayout]);
 
   if (loading) {
     return (

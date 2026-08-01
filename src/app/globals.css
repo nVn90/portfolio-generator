@@ -73,10 +73,20 @@ body {
 
 /* ── Print styles ───────────────────────────────────────────── */
 @media print {
+  /* Hide the customisation toolbar */
   .no-print { display: none !important; }
-  body { background: white !important; color: black !important; }
+
+  /* Tell browsers to honour background colours & images — without this,
+     Chrome/Edge strip all backgrounds in print mode, wiping theme colours. */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Remove decorative shadows that look bad on paper */
   * { box-shadow: none !important; }
 }
+
 
 /* ── Glassmorphism utility ──────────────────────────────────── */
 .glass {
