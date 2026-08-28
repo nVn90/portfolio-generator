@@ -1,5 +1,5 @@
-require('dotenv').config({ path: '.env.local' });
-const Groq = require('groq-sdk');
+require("dotenv").config({ path: ".env.local" });
+const Groq = require("groq-sdk");
 const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const RESUME_TOOL = {
@@ -27,7 +27,6 @@ const RESUME_TOOL = {
 
     const message = response.choices[0]?.message;
     const toolCall = message?.tool_calls?.[0];
-    console.log("TOOL_CALL:", JSON.stringify(toolCall));
 
     const data = JSON.parse(toolCall.function.arguments);
     console.log("DATA_PARSED_SUCCESSFULLY:", data);

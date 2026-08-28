@@ -27,7 +27,9 @@ export default function PortfolioToolbar({
   const [activeTab, setActiveTab] = useState<"theme" | "layout">("theme");
 
   const handleShare = async () => {
-    const url = window.location.href;
+    const shareUrl = new URL(window.location.href);
+    shareUrl.searchParams.set("shared", "1");
+    const url = shareUrl.toString();
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);

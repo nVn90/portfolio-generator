@@ -17,6 +17,8 @@ export default function PortfolioPage({ params }: PageProps) {
   const [previewTheme, setPreviewTheme] = useState<ThemeId | undefined>();
   const [previewLayout, setPreviewLayout] = useState<LayoutId | undefined>();
 
+  const [isSharedView, setIsSharedView] = useState(false);
+
   useEffect(() => {
     async function load() {
       const { id } = await params;
@@ -37,6 +39,11 @@ export default function PortfolioPage({ params }: PageProps) {
 
         setPreviewTheme(urlTheme ?? json.themeId);
         setPreviewLayout(urlLayout ?? json.layoutId);
+
+        // Hide toolbar for third-party viewers
+        if (urlParams.get("shared") === "1") {
+          setIsSharedView(true);
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load");
       } finally {
@@ -94,13 +101,15 @@ export default function PortfolioPage({ params }: PageProps) {
         previewThemeId={previewTheme}
         previewLayoutId={previewLayout}
       />
-      <PortfolioToolbar
-        data={data}
-        currentThemeId={previewTheme ?? data.themeId}
-        currentLayoutId={previewLayout ?? data.layoutId}
-        onThemeChange={setPreviewTheme}
-        onLayoutChange={setPreviewLayout}
-      />
+      {!isSharedView && (
+        <PortfolioToolbar
+          data={data}
+          currentThemeId={previewTheme ?? data.themeId}
+          currentLayoutId={previewLayout ?? data.layoutId}
+          onThemeChange={setPreviewTheme}
+          onLayoutChange={setPreviewLayout}
+        />
+      )}
     </>
   );
 }

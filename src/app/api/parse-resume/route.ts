@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractTextFromFile, ACCEPTED_TYPES, MAX_FILE_SIZE_BYTES } from "@/lib/file-parser";
+import {
+  extractTextFromFile,
+  ACCEPTED_TYPES,
+  MAX_FILE_SIZE_BYTES,
+} from "@/lib/file-parser";
 import { parseResumeWithAI } from "@/lib/resume-parser";
 
 export const runtime = "nodejs";
@@ -17,8 +21,10 @@ export async function POST(request: NextRequest) {
     // Validate file size
     if (file.size > MAX_FILE_SIZE_BYTES) {
       return NextResponse.json(
-        { error: `File too large. Maximum size is 10 MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB.` },
-        { status: 413 }
+        {
+          error: `File too large. Maximum size is 10 MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB.`,
+        },
+        { status: 413 },
       );
     }
 
@@ -32,8 +38,10 @@ export async function POST(request: NextRequest) {
 
     if (!isValidMime && !isValidExt) {
       return NextResponse.json(
-        { error: `Unsupported file type. Please upload a PDF, DOCX, DOC, or TXT file.` },
-        { status: 415 }
+        {
+          error: `Unsupported file type. Please upload a PDF, DOCX, DOC, or TXT file.`,
+        },
+        { status: 415 },
       );
     }
 
@@ -43,17 +51,20 @@ export async function POST(request: NextRequest) {
 
     if (!text.trim()) {
       return NextResponse.json(
-        { error: "Could not extract text from the file. Please try a different format." },
-        { status: 422 }
+        {
+          error:
+            "Could not extract text from the file. Please try a different format.",
+        },
+        { status: 422 },
       );
     }
 
-    // Parse with AI
     const resumeData = await parseResumeWithAI(text);
 
     return NextResponse.json({ resumeData, rawText: text.slice(0, 500) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error occurred";
+    const message =
+      error instanceof Error ? error.message : "Unknown error occurred";
     console.error("[parse-resume]", error);
     return NextResponse.json({ error: message }, { status: 500 });
   }

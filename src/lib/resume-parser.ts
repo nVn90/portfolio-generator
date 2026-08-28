@@ -120,7 +120,7 @@ export async function parseResumeWithAI(resumeText: string): Promise<ResumeData>
       console.log(`[resume-parser] Attempt ${attempt}/${MAX_RETRIES} — calling Groq API...`);
 
       const response = await client.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
+        model: "qwen/qwen3.8-27b",
         max_tokens: 4096,
         tools: [RESUME_TOOL],
         tool_choice: { type: "function", function: { name: "extract_resume" } },
